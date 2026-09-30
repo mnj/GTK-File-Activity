@@ -1,0 +1,72 @@
+name: Release
+
+# Every change that lands on main becomes a release. The tag is
+# v<major>.<minor>.<number of commits on main>, so nothing needs bumping by hand.
+# Change major.minor in Cargo.toml to start a new series.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".github/workflows/pages.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm --needed base-devel clang rust git github-cli gtk4 libadwaita elfutils zlib
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Work out the version
+        id: version
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          base=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+          version="${base%.*}.$(git rev-list --count HEAD)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # The About dialog reads this from Cargo.toml at build time.
+          sed -i "0,/^version = .*/s//version = \"$version\"/" Cargo.toml
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        id: package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          name="gtk-file-activity-$VERSION-x86_64-linux"
+          mkdir -p "dist/$name/data"
+          strip -o "dist/$name/gtk-file-activity" target/release/gtk-file-activity
+          cp LICENSE README.md "dist/$name/"
+          cp bpf/LICENSE "dist/$name/LICENSE-ebpf"
+          cp data/* "dist/$name/data/"
+          cp scripts/install.sh "dist/$name/"
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+          (cd dist && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")
+          echo "archive=dist/$name.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            "${{ steps.package.outputs.archive }}" \
+            "${{ steps.package.outputs.archive }}.sha256" \
+            --target "$GITHUB_SHA" \
+            --title "v$VERSION" \
+            --generate-notes

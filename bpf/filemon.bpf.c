@@ -52,8 +52,11 @@ struct path_key {
 	__u64 ino;
 };
 
+/* The path is relative to the root of `mntns`, the mount namespace of the
+ * process that first touched the file. Userspace translates it to the host. */
 struct path_val {
-	char path[512];
+	__u64 mntns;
+	char path[504];
 };
 
 struct {
@@ -70,7 +73,7 @@ struct {
 	__type(value, struct path_val);
 } paths SEC(".maps");
 
-/* The path is built backwards, right-aligned at buf[1023]. A 512 byte window
+/* The path is built backwards, right-aligned at buf[1023]. A 504 byte window
  * from the start of the path is then copied to `out`, which goes into `paths`.
  * buf is 1536 bytes so the masked indexes below stay in bounds for the verifier. */
 #define WALK_BUF 1024
@@ -79,7 +82,7 @@ struct {
 
 struct walk_scratch {
 	char buf[WALK_BUF + 512];
-	char out[512];
+	struct path_val out;
 	char comp[256];
 };
 
@@ -215,6 +218,7 @@ static __always_inline void note_path(struct file *file, __u64 dev, __u64 ino)
 		return;
 	mnt = (__u64)vfs - bpf_core_field_offset(struct mount, mnt);
 	mnt_root = BPF_CORE_READ(vfs, mnt_root);
+	w->out.mntns = BPF_CORE_READ((struct mount *)mnt, mnt_ns, ns.inum);
 	w->buf[(WALK_BUF - 1) & (WALK_BUF - 1)] = 0;
 
 	for (i = 0; i < WALK_DEPTH; i++) {
@@ -264,10 +268,10 @@ static __always_inline void note_path(struct file *file, __u64 dev, __u64 ino)
 	}
 	if (truncated)
 		hit(H_PATH_TRUNC);
-	if (bpf_probe_read_kernel(w->out, sizeof(w->out), &w->buf[pos & (WALK_BUF - 1)]))
+	if (bpf_probe_read_kernel(w->out.path, sizeof(w->out.path), &w->buf[pos & (WALK_BUF - 1)]))
 		return;
 	hit(H_PATH_OK);
-	bpf_map_update_elem(&paths, &pk, w->out, BPF_ANY);
+	bpf_map_update_elem(&paths, &pk, &w->out, BPF_ANY);
 }
 
 static __always_inline void add_id(__u64 dev, __u64 ino, __u32 tgid, const char comm[16],

@@ -199,7 +199,6 @@ mod tests {
                     reads: 2,
                     writes: 0,
                     fds: vec![3],
-                    path: "/tmp/a b\"c".into(),
                     did_io: true,
                     still_open: true,
                 }],

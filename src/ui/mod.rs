@@ -274,9 +274,25 @@ fn build_window(app: &adw::Application) {
     }
 
     let window_tick = window.clone();
+    let scroll_tick = scroll.vadjustment();
+    let view_tick = view.clone();
     glib::spawn_future_local(async move {
         while let Ok(snap) = rx.recv().await {
+            // A list view keeps the row you were looking at in place when rows
+            // appear above it. Busy files sort to the top, so someone watching
+            // the top of the list would be carried down it. Stay at the top.
+            let at_top = scroll_tick.value() < 1.0;
             apply_snapshot(&store, &snap);
+            // Rates change in place, which a sort model does not notice on its own.
+            if let Some(sorter) = view_tick.sorter() {
+                sorter.changed(gtk::SorterChange::Different);
+            }
+            if at_top {
+                let view = view_tick.clone();
+                glib::idle_add_local_once(move || {
+                    view.scroll_to(0, None::<&gtk::ColumnViewColumn>, gtk::ListScrollFlags::NONE, None);
+                });
+            }
             *procs.borrow_mut() = snap
                 .files
                 .iter()
@@ -286,12 +302,14 @@ fn build_window(app: &adw::Application) {
             read_value.set_label(&format_rate(snap.total_read_bps));
             write_value.set_label(&format_rate(snap.total_write_bps));
             files_value.set_label(&format!("{} files", snap.files.len()));
-            title.set_subtitle(&format!(
-                "{} · probes {}/{}",
-                plural(snap.files.len(), "file"),
-                snap.attached,
-                snap.expected
-            ));
+            let state = if snap.attached == 0 {
+                "Open files only"
+            } else if snap.attached < snap.expected {
+                "Monitoring partly working"
+            } else {
+                "Monitoring"
+            };
+            title.set_subtitle(&format!("{state} · {}", plural(snap.files.len(), "file")));
             // Listing every open file is the fallback without rates. Once the
             // probes are live the list should be the files doing I/O.
             if snap.attached > 0 && !rates_on.get() {
@@ -303,16 +321,16 @@ fn build_window(app: &adw::Application) {
             let problem = snap.failed.join("; ");
             if snap.needs_auth {
                 banner.set_title(if problem.is_empty() {
-                    "Read and write rates need administrator access. Open files are listed meanwhile."
+                    "Showing open files only. Live read and write speeds need administrator access."
                 } else {
                     &problem
                 });
-                banner.set_button_label(Some("Enable Rates"));
+                banner.set_button_label(Some("Start Monitoring"));
                 banner.set_revealed(true);
             } else if problem.is_empty() {
                 banner.set_revealed(false);
             } else {
-                banner.set_title(&format!("Some probes did not attach: {problem}"));
+                banner.set_title(&format!("Monitoring is only partly working: {problem}"));
                 banner.set_button_label(None);
                 banner.set_revealed(true);
             }

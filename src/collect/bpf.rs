@@ -92,7 +92,9 @@ impl Loaded {
         out
     }
 
-    pub fn read_hints(&self) -> HashMap<(u64, u64), String> {
+    /// Path per file as the first process to touch it saw it, with that
+    /// process's mount namespace inode.
+    pub fn read_hints(&self) -> HashMap<(u64, u64), (u64, String)> {
         let mut out = HashMap::new();
         for key in map_keys(&self.skel.maps.paths) {
             let Some(val) = map_lookup(&self.skel.maps.paths, &key) else {
@@ -101,9 +103,12 @@ impl Loaded {
             let Some(key) = pod::<PathKey>(&key) else {
                 continue;
             };
-            let path = cstr(&val);
+            let Some(mntns) = pod::<u64>(&val) else {
+                continue;
+            };
+            let path = cstr(val.get(8..).unwrap_or_default());
             if !path.is_empty() {
-                out.insert((key.dev, key.ino), path);
+                out.insert((key.dev, key.ino), (mntns, path));
             }
         }
         out

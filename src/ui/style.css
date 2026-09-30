@@ -1,0 +1,32 @@
+/* SPDX-License-Identifier: MIT */
+
+/* Adwaita palette: blue_4 and orange_4 on light, blue_2 and orange_2 on dark. */
+.read-rate { color: #1c71d8; }
+.write-rate { color: #e66100; }
+
+@media (prefers-color-scheme: dark) {
+  .read-rate { color: #62a0ea; }
+  .write-rate { color: #ffa348; }
+}
+
+.stat-dot {
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 99px;
+}
+.stat-dot.read { background: #1c71d8; }
+.stat-dot.write { background: #e66100; }
+
+@media (prefers-color-scheme: dark) {
+  .stat-dot.read { background: #62a0ea; }
+  .stat-dot.write { background: #ffa348; }
+}
+
+.stat-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.file-name { font-weight: 600; }
+
+columnview.data-table > listview > row > cell { padding: 6px 8px; }

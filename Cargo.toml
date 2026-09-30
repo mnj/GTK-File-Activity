@@ -1,0 +1,23 @@
+[package]
+name = "gtk-file-activity"
+version = "0.1.0"
+edition = "2021"
+description = "Per-file read and write rates for Linux, in the style of Resource Monitor"
+license = "MIT"
+authors = ["Michael Jensen"]
+
+[[bin]]
+name = "gtk-file-activity"
+path = "src/main.rs"
+
+[dependencies]
+async-channel = "2"
+gtk = { package = "gtk4", version = "0.9", features = ["v4_14"] }
+libadwaita = { version = "0.7", features = ["v1_7"] }
+libbpf-rs = "0.24"
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[build-dependencies]
+libbpf-cargo = "0.24"

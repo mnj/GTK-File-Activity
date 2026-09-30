@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=File Activity
+Comment=Per-file read and write rates
+Exec=gtk-file-activity
+Icon=drive-harddisk
+Categories=System;Monitor;GTK;
+Keywords=disk;io;files;read;write;ebpf;
+StartupNotify=true

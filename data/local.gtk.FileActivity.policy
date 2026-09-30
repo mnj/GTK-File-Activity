@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- SPDX-License-Identifier: MIT -->
+<policyconfig>
+  <vendor>GTK File Activity</vendor>
+  <action id="local.gtk.FileActivity.helper">
+    <description>Monitor file read and write activity</description>
+    <message>Authentication is required to monitor which files programs read and write</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/gtk-file-activity</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">--helper</annotate>
+  </action>
+</policyconfig>

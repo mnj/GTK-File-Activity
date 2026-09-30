@@ -87,6 +87,10 @@ functions beneath. On LTO/AutoFDO kernels (CachyOS) `vfs_read` and friends are
 inlined into their callers, which silently removes the probe site. Paths are
 rebuilt by walking dentries and mounts the first time a file is counted, for
 the same reason: the hooks `bpf_d_path` is allowed in are inlined away too.
+That path is as the process sees it, so a container's files come back as
+`/input/...`. The helper translates them to host paths by matching the
+container's and the host's `mountinfo` (same filesystem, same root), and falls
+back to the container path when it cannot.
 
 Not counted: memory-mapped access, `kernel_read` callers such as `exec`, and
 classic AIO.

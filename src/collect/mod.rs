@@ -5,6 +5,7 @@
 mod bpf;
 mod control;
 mod helper;
+mod hostpath;
 mod privs;
 mod procfs;
 
@@ -14,6 +15,7 @@ use helper::Remote;
 
 use crate::model::{format_rate, Model, RawStat, Snapshot, HOLD};
 use bpf::{Loaded, EXPECTED_PROBES};
+use hostpath::HostPaths;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
@@ -28,6 +30,7 @@ struct Sampler {
     loaded: Option<Loaded>,
     problem: String,
     model: Model,
+    host_paths: HostPaths,
     /// When the counters were last read. Rates divide by the gap between
     /// reads, which includes the /proc scan, not just the sleep.
     last_read: Instant,
@@ -51,6 +54,7 @@ impl Sampler {
             loaded,
             problem,
             model: Model::new(),
+            host_paths: HostPaths::new(),
             last_read: Instant::now(),
             totals: HashMap::new(),
             recent: HashMap::new(),
@@ -73,7 +77,7 @@ impl Sampler {
     }
 
     fn sample(&mut self, show_idle: bool) -> Snapshot {
-        let (stats, hints, failed) = match &self.loaded {
+        let (stats, raw_hints, failed) = match &self.loaded {
             Some(loaded) => (
                 loaded.read_stats(),
                 loaded.read_hints(),
@@ -92,6 +96,12 @@ impl Sampler {
         let read_at = Instant::now();
         let elapsed = read_at.duration_since(self.last_read).as_secs_f64();
         self.last_read = read_at;
+
+        let mut touched: HashMap<(u64, u64), Vec<u32>> = HashMap::new();
+        for stat in &stats {
+            touched.entry((stat.dev, stat.ino)).or_default().push(stat.tgid);
+        }
+        let hints = self.host_paths.resolve(&raw_hints, &touched);
 
         let fds = if show_idle {
             procfs::scan(None)

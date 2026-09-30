@@ -7,6 +7,8 @@ See which files your programs are reading and writing, and how fast. A
 Resource Monitor style viewer for Linux: one row per file, live read and write
 speeds, a 60 second history, and the processes behind each file.
 
+![File Activity showing live read and write speeds per file](docs/screenshot.png)
+
 Website: <https://mnj.github.io/GTK-File-Activity/>
 
 A small eBPF program counts bytes per file and process inside the kernel. A

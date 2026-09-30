@@ -44,27 +44,8 @@
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   @media (prefers-color-scheme: dark) { .btn.primary { color: #10233d; } }
 
-  /* A drawn stand-in for the window, with made-up data. */
-  .shot { margin: 38px auto 0; max-width: 860px; }
-  .win { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; text-align: left; }
-  .bar { display: flex; justify-content: center; padding: 10px; border-bottom: 1px solid var(--line); font-size: .85rem; }
-  .bar b { display: block; text-align: center; } .bar small { color: var(--muted); display: block; text-align: center; }
-  .stats { display: flex; gap: 28px; padding: 14px 18px 4px; }
-  .stat small { color: var(--muted); display: flex; align-items: center; gap: 6px; font-size: .8rem; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .stat strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
-  .r { color: var(--read); } .w { color: var(--write); }
-  svg.graph { display: block; width: 100%; height: 96px; }
-  .rows { border-top: 1px solid var(--line); font-size: .86rem; }
-  .row { display: grid; grid-template-columns: 1fr 92px 92px 130px; gap: 10px; padding: 7px 18px; border-bottom: 1px solid var(--line); align-items: center; }
-  .row.head { color: var(--muted); font-size: .76rem; padding-top: 8px; padding-bottom: 8px; }
-  .row .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .d { color: var(--muted); font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .row .p { color: var(--muted); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dim { opacity: .4; }
-  .note { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 10px; }
-  @media (max-width: 640px) { .row { grid-template-columns: 1fr 78px 78px; } .row .p { display: none; } }
+  .shot { margin: 38px auto 0; max-width: 900px; }
+  .shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 
   section { padding: 54px 0 6px; }
   h2 { font-size: 1.6rem; margin: 0 0 8px; letter-spacing: -.01em; }
@@ -107,29 +88,8 @@
       <a class="btn" href="https://github.com/mnj/GTK-File-Activity">View source</a>
     </div>
 
-    <figure class="shot" aria-label="Illustration of the application window with sample data">
-      <div class="win">
-        <div class="bar"><div><b>File Activity</b><small>Monitoring · 6 files</small></div></div>
-        <div class="stats">
-          <div class="stat"><small><span class="dot" style="background:var(--read)"></span>Read</small><strong class="r">48.2 MiB/s</strong></div>
-          <div class="stat"><small><span class="dot" style="background:var(--write)"></span>Write</small><strong class="w">6.4 MiB/s</strong></div>
-        </div>
-        <svg class="graph" viewBox="0 0 600 96" preserveAspectRatio="none" aria-hidden="true">
-          <g stroke="currentColor" stroke-opacity=".1" fill="none"><path d="M0 24H600M0 48H600M0 72H600"/></g>
-          <path d="M0 96 L0 80 L40 74 L80 50 L120 56 L160 30 L200 38 L240 24 L280 44 L320 28 L360 34 L400 22 L440 40 L480 30 L520 46 L560 36 L600 42 L600 96Z" fill="var(--read)" fill-opacity=".18"/>
-          <path d="M0 80 L40 74 L80 50 L120 56 L160 30 L200 38 L240 24 L280 44 L320 28 L360 34 L400 22 L440 40 L480 30 L520 46 L560 36 L600 42" fill="none" stroke="var(--read)" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M0 90 L60 88 L120 84 L180 86 L240 78 L300 82 L360 70 L420 80 L480 74 L540 84 L600 80 L600 96 L0 96Z" fill="var(--write)" fill-opacity=".18"/>
-          <path d="M0 90 L60 88 L120 84 L180 86 L240 78 L300 82 L360 70 L420 80 L480 74 L540 84 L600 80" fill="none" stroke="var(--write)" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-        <div class="rows">
-          <div class="row head"><span>File</span><span class="num">Read</span><span class="num">Write</span><span>Processes</span></div>
-          <div class="row"><span><div class="n">holiday-2025.mkv</div><div class="d">/home/sam/Videos</div></span><span class="num r">31.0 MiB/s</span><span class="num dim">—</span><span class="p">vlc (4210)</span></div>
-          <div class="row"><span><div class="n">archive.tar.zst</div><div class="d">/home/sam/Downloads</div></span><span class="num r">14.8 MiB/s</span><span class="num w">5.9 MiB/s</span><span class="p">zstd (5127)</span></div>
-          <div class="row"><span><div class="n">places.sqlite-wal</div><div class="d">/home/sam/.mozilla/firefox/abc.default</div></span><span class="num dim">—</span><span class="num w">412 KiB/s</span><span class="p">firefox (3301)</span></div>
-          <div class="row"><span><div class="n">journal</div><div class="d">/var/log/journal/4f2a</div></span><span class="num r">2.4 MiB/s</span><span class="num w">88 KiB/s</span><span class="p">journald (612)</span></div>
-        </div>
-      </div>
-      <figcaption class="note">An illustration with sample data, not a screenshot.</figcaption>
+    <figure class="shot">
+      <img src="screenshot.png" width="1178" height="748" alt="The File Activity window: live read and write totals, a 60 second graph, and a list of files with their read and write speeds and the processes using them.">
     </figure>
   </header>
 

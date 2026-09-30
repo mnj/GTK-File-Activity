@@ -45,7 +45,6 @@ pub struct ProcSnapshot {
     pub reads: u64,
     pub writes: u64,
     pub fds: Vec<i32>,
-    pub path: String,
     pub did_io: bool,
     pub still_open: bool,
 }
@@ -290,7 +289,6 @@ fn build_row(
                 reads: delta.reads,
                 writes: delta.writes,
                 fds: Vec::new(),
-                path: String::new(),
                 did_io: true,
                 still_open: false,
             },
@@ -306,13 +304,11 @@ fn build_row(
                 reads: 0,
                 writes: 0,
                 fds: Vec::new(),
-                path: String::new(),
                 did_io: false,
                 still_open: false,
             });
             entry.still_open = true;
             entry.fds.clone_from(&holder.fds);
-            entry.path.clone_from(&holder.path);
             if entry.comm.is_empty() {
                 entry.comm.clone_from(&holder.comm);
             }
@@ -336,8 +332,6 @@ fn build_row(
     for proc in &processes {
         haystack.push(' ');
         haystack.push_str(&proc.comm);
-        haystack.push(' ');
-        haystack.push_str(&proc.path);
     }
     FileSnapshot {
         dev,

@@ -286,12 +286,14 @@ fn build_window(app: &adw::Application) {
             read_value.set_label(&format_rate(snap.total_read_bps));
             write_value.set_label(&format_rate(snap.total_write_bps));
             files_value.set_label(&format!("{} files", snap.files.len()));
-            title.set_subtitle(&format!(
-                "{} · probes {}/{}",
-                plural(snap.files.len(), "file"),
-                snap.attached,
-                snap.expected
-            ));
+            let state = if snap.attached == 0 {
+                "Open files only"
+            } else if snap.attached < snap.expected {
+                "Monitoring partly working"
+            } else {
+                "Monitoring"
+            };
+            title.set_subtitle(&format!("{state} · {}", plural(snap.files.len(), "file")));
             // Listing every open file is the fallback without rates. Once the
             // probes are live the list should be the files doing I/O.
             if snap.attached > 0 && !rates_on.get() {
@@ -303,16 +305,16 @@ fn build_window(app: &adw::Application) {
             let problem = snap.failed.join("; ");
             if snap.needs_auth {
                 banner.set_title(if problem.is_empty() {
-                    "Read and write rates need administrator access. Open files are listed meanwhile."
+                    "Showing open files only. Live read and write speeds need administrator access."
                 } else {
                     &problem
                 });
-                banner.set_button_label(Some("Enable Rates"));
+                banner.set_button_label(Some("Start Monitoring"));
                 banner.set_revealed(true);
             } else if problem.is_empty() {
                 banner.set_revealed(false);
             } else {
-                banner.set_title(&format!("Some probes did not attach: {problem}"));
+                banner.set_title(&format!("Monitoring is only partly working: {problem}"));
                 banner.set_button_label(None);
                 banner.set_revealed(true);
             }

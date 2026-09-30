@@ -9,11 +9,11 @@ and the processes behind each file.
 
 ```sh
 cargo build --release
-./target/release/gtk-file-activity               # click "Enable Rates" for the probes
+./target/release/gtk-file-activity               # click "Start Monitoring" for live speeds
 sudo ./target/release/gtk-file-activity --dump   # terminal output, prints hook hit counts
 ```
 
-The window never runs as root. "Enable Rates" starts
+The window never runs as root. "Start Monitoring" starts
 `gtk-file-activity --helper` through `pkexec`. The helper loads the eBPF probes,
 then drops every capability except `CAP_SYS_PTRACE` (reading other users'
 `/proc/<pid>/fd`). It sends

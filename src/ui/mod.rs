@@ -274,9 +274,25 @@ fn build_window(app: &adw::Application) {
     }
 
     let window_tick = window.clone();
+    let scroll_tick = scroll.vadjustment();
+    let view_tick = view.clone();
     glib::spawn_future_local(async move {
         while let Ok(snap) = rx.recv().await {
+            // A list view keeps the row you were looking at in place when rows
+            // appear above it. Busy files sort to the top, so someone watching
+            // the top of the list would be carried down it. Stay at the top.
+            let at_top = scroll_tick.value() < 1.0;
             apply_snapshot(&store, &snap);
+            // Rates change in place, which a sort model does not notice on its own.
+            if let Some(sorter) = view_tick.sorter() {
+                sorter.changed(gtk::SorterChange::Different);
+            }
+            if at_top {
+                let view = view_tick.clone();
+                glib::idle_add_local_once(move || {
+                    view.scroll_to(0, None::<&gtk::ColumnViewColumn>, gtk::ListScrollFlags::NONE, None);
+                });
+            }
             *procs.borrow_mut() = snap
                 .files
                 .iter()

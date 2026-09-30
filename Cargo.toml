@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "Per-file read and write rates for Linux, in the style of Resource Monitor"
 license = "MIT"
+repository = "https://github.com/mnj/GTK-File-Activity"
+homepage = "https://mnj.github.io/GTK-File-Activity/"
 authors = ["Michael Jensen"]
 
 [[bin]]
